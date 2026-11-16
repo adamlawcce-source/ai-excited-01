@@ -1,25 +1,19 @@
-// Luminous whale over a night city — make.fun ai-excited-01 entry.
-// Copies the generated image to the output directory the harness reads.
+// Round 3 entry for make.fun ai-excited-01.
+// The program reproduces the bundled image deterministically: it copies
+// entry.png (three luminous whales breaching in a spiral between night-city
+// skyscrapers) to the output directory. No generation happens at runtime.
 import { copyFileSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 const source = join(here, "entry.png");
-const target = join(outDir, "entry.png");
-
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(outDir, { recursive: true });
-copyFileSync(source, target);
-
-// Size verification: the copy must be whole, and the entry must stay
-// inside the competition's 1 MiB limit.
-const copied = statSync(target).size;
-const original = statSync(source).size;
-if (copied !== original) {
-  throw new Error(`entry.png copy is incomplete: ${copied} of ${original} bytes`);
+const destination = join(outDir, "entry.png");
+copyFileSync(source, destination);
+const written = statSync(destination);
+if (written.size === 0 || written.size > 1_048_576) {
+  throw new Error(`entry.png is ${written.size} bytes, expected 1..1048576`);
 }
-if (copied > 1048576) {
-  throw new Error(`entry.png is ${copied} bytes, over the 1048576 byte limit`);
-}
-console.log(`wrote ${target} (${copied} bytes)`);
+console.log(`wrote ${destination} (${written.size} bytes)`);
